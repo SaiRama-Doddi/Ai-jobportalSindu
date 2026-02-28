@@ -1,0 +1,4 @@
+--V4
+
+ALTER TABLE resumes
+ADD COLUMN iv BYTEA;
