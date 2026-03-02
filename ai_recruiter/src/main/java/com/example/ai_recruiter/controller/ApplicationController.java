@@ -9,6 +9,7 @@ import com.example.ai_recruiter.service.ApplicationService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -64,5 +65,12 @@ public class ApplicationController {
     }
 
 
+    @GetMapping("/my/tracking")
+    @PreAuthorize("hasRole('CANDIDATE') or hasRole('ADMIN')")
+    public ResponseEntity<?> myTracking(Authentication authentication) {
 
+        return ResponseEntity.ok(
+                applicationService.getMyTracking(authentication.getName())
+        );
+    }
 }

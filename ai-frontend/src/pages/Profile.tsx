@@ -3,7 +3,16 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 /* ===================== TYPES ===================== */
-
+interface TrackingItem {
+  applicationId: number;
+  jobTitle: string;
+  appliedAt: string;
+  applicationStatus: string;
+  interviewStatus: string;
+  averageRating?: number;
+  verdict?: string;
+  message?: string;
+}
 interface UserProfile {
   id: number;
   name: string;
@@ -34,10 +43,24 @@ export default function Profile() {
   const [interviewResult, setInterviewResult] =
     useState<InterviewResult | null>(null);
 
+    const [tracking, setTracking] = useState<TrackingItem[]>([]);
+
   const token = localStorage.getItem("token");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+  if (!profile || profile.role !== "CANDIDATE") return;
+
+  axios
+    .get<TrackingItem[]>(
+      "http://localhost:8081/api/applications/my/tracking",
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    .then((res) => setTracking(res.data))
+    .catch(() => setTracking([]));
+
+}, [profile, token]);
   /* ===================== LOAD PROFILE ===================== */
 
   useEffect(() => {
@@ -311,7 +334,80 @@ return (
           </p>
         </div>
       )}
+{/* ================= APPLICATION TRACKING ================= */}
 
+{tracking.length > 0 && (
+  <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8 shadow-[0_10px_40px_rgba(0,0,0,0.6)] space-y-6">
+
+    <h3 className="text-xl font-semibold">
+      Application Tracking
+    </h3>
+
+    {tracking.map((item) => (
+      <div
+        key={item.applicationId}
+        className="bg-white/10 rounded-2xl p-6 space-y-3"
+      >
+
+        <h4 className="text-lg font-bold text-indigo-400">
+          {item.jobTitle}
+        </h4>
+
+        <p>
+          <span className="text-gray-400">Applied On:</span>{" "}
+          <span className="font-medium">
+            {new Date(item.appliedAt).toLocaleDateString()}
+          </span>
+        </p>
+
+        <p>
+          <span className="text-gray-400">Application Status:</span>{" "}
+          <span className="text-blue-400 font-semibold">
+            {item.applicationStatus}
+          </span>
+        </p>
+
+        <p>
+          <span className="text-gray-400">Interview Status:</span>{" "}
+          <span className="text-purple-400 font-semibold">
+            {item.interviewStatus}
+          </span>
+        </p>
+
+        {/* RESULT BLOCK */}
+        {item.verdict && (
+          <div
+            className={`mt-4 rounded-xl p-5 text-center border
+              ${
+                item.verdict === "PASS"
+                  ? "bg-green-500/10 border-green-400/30"
+                  : item.verdict === "HOLD"
+                  ? "bg-yellow-500/10 border-yellow-400/30"
+                  : "bg-red-500/10 border-red-400/30"
+              }
+            `}
+          >
+            <h3 className="text-2xl font-bold mb-2">
+              {item.verdict}
+            </h3>
+
+            <p className="mb-2 font-medium">
+              {item.message}
+            </p>
+
+            <p className="text-gray-300">
+              Average Rating:{" "}
+              <span className="text-indigo-400 font-semibold">
+                {item.averageRating}
+              </span>
+            </p>
+          </div>
+        )}
+
+      </div>
+    ))}
+  </div>
+)}
       {/* Recommended Jobs */}
       <div className="text-center pt-6">
         <button

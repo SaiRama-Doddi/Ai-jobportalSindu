@@ -1,6 +1,7 @@
 package com.example.ai_recruiter.service;
 
 import com.example.ai_recruiter.dto.ApplicationResponse;
+import com.example.ai_recruiter.dto.ApplicationTrackingResponse;
 import com.example.ai_recruiter.dto.MyApplicationResponse;
 import com.example.ai_recruiter.entity.*;
 import com.example.ai_recruiter.repo.*;
@@ -103,4 +104,57 @@ public class ApplicationService {
         }).toList();
     }
 
+
+
+
+    public List<ApplicationTrackingResponse> getMyTracking(String email) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<Application> applications = applicationRepository.findByCandidate(user);
+
+        return applications.stream().map(app -> {
+
+            InterviewSession interview = interviewSessionRepository
+                    .findByApplicationId(app.getId())
+                    .orElse(null);
+
+            InterviewResult result = null;
+
+            if (interview != null) {
+                result = interviewResultRepository
+                        .findByInterviewId(interview.getId())
+                        .orElse(null);
+            }
+
+            String message = null;
+            String verdict = null;
+            Float avg = null;
+
+            if (result != null) {
+                verdict = result.getVerdict();
+                avg = result.getAverageRating();
+
+                message = switch (verdict) {
+                    case "PASS" -> "🎉 Congratulations! You are selected for the next round.";
+                    case "HOLD" -> "⏳ Your application is currently on hold.";
+                    case "FAIL" -> "❌ You are not selected at this time.";
+                    default -> "Result under review.";
+                };
+            }
+
+            return ApplicationTrackingResponse.builder()
+                    .applicationId(app.getId())
+                    .jobTitle(app.getJob().getTitle())
+                    .appliedAt(app.getAppliedAt())
+                    .applicationStatus(app.getStatus())
+                    .interviewStatus(interview != null ? interview.getStatus() : "NOT_STARTED")
+                    .averageRating(avg)
+                    .verdict(verdict)
+                    .message(message)
+                    .build();
+
+        }).toList();
+    }
 }

@@ -60,7 +60,7 @@ public class SecurityConfig {
 
                         // Interview APIs
                         .requestMatchers("/api/interviews/**")
-                        .hasAnyRole("INTERVIEWER","HR","ADMIN")
+                        .hasAnyRole("INTERVIEWER","HR","ADMIN","CANDIDATE")
 
                         // Admin
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")

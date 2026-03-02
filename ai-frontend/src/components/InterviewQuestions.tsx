@@ -126,13 +126,13 @@ return (
             .filter(Boolean).length || 0} words
         </p>
 
-        <button
+       {/*  <button
           onClick={() => startListening(currentQuestion.id)}
           disabled={disabled}
           className="mt-6 px-6 py-2 bg-indigo-600 rounded-lg hover:bg-indigo-700 transition"
         >
           {listening ? "Listening..." : "🎤 Voice Answer"}
-        </button>
+        </button> */}
 
         <div className="flex justify-between mt-12">
           <button
